@@ -61,10 +61,6 @@ def sync_metrics_update(context):
         sets_completed = 0
         current_set_reps = 0
         workout_completed = False
-    else:
-        sets_completed = 0
-        current_set_reps = 0
-        workout_completed = False
 
     st.session_state.sets_completed = sets_completed
     st.session_state.current_set_reps = current_set_reps
