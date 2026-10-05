@@ -22,10 +22,9 @@ from services.coaching.voice_pipeline import VoicePipeline, autoplay_audio
 
 
 def get_xirsys_ice_servers():
-    ident = os.environ.get("XIRSYS_IDENT", "")
-    secret = os.environ.get("XIRSYS_SECRET", "")
-    channel = os.environ.get("XIRSYS_CHANNEL", "")
-
+    ident = os.environ.get("XIRSYS_IDENT", "").strip()
+    secret = os.environ.get("XIRSYS_SECRET", "").strip()
+    channel = os.environ.get("XIRSYS_CHANNEL", "").strip()
     if not ident or not secret or not channel:
         raise RuntimeError("Xirsys configuration is missing")
 
@@ -44,11 +43,8 @@ def get_xirsys_ice_servers():
         method="PUT",
         headers={
             "Authorization": f"Basic {auth}",
-            "Content-Type": "application/json",
         },
-        data=b"{}",
     )
-
     with urllib.request.urlopen(request, timeout=10) as response:
         data = json.loads(response.read().decode("utf-8"))
 
