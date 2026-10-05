@@ -53,7 +53,9 @@ def get_xirsys_ice_servers():
         data = json.loads(response.read().decode("utf-8"))
 
     if data.get("s") != "ok":
-        raise RuntimeError("Xirsys TURN request failed")
+        raise RuntimeError(
+            f"Xirsys TURN request failed: {data}"
+        )
 
     ice_servers = data.get("v", {}).get("iceServers")
 
