@@ -2,6 +2,10 @@ import streamlit as st
 import os
 import time
 import pandas as pd
+import json
+import base64
+import urllib.request
+import urllib.parse
 from services.auth.login_wall import render_login_wall
 from services.state.session_defaults import initial_session_defaults
 from services.config.workout_config import EXCERCISE_OPTIONS
@@ -16,7 +20,48 @@ from services.coaching.llm import LLMCoach
 from services.coaching.tts import TextToSpeech
 from services.coaching.voice_pipeline import VoicePipeline, autoplay_audio
 
-  
+
+def get_xirsys_ice_servers():
+    ident = os.environ.get("XIRSYS_IDENT", "")
+    secret = os.environ.get("XIRSYS_SECRET", "")
+    channel = os.environ.get("XIRSYS_CHANNEL", "")
+
+    if not ident or not secret or not channel:
+        raise RuntimeError("Xirsys configuration is missing")
+
+    encoded_channel = urllib.parse.quote(channel, safe="")
+
+    url = (
+        f"https://global.xirsys.net/_turn/"
+        f"{encoded_channel}?webrtc=1&expire=3600"
+    )
+
+    credentials = f"{ident}:{secret}".encode("utf-8")
+    auth = base64.b64encode(credentials).decode("ascii")
+
+    request = urllib.request.Request(
+        url,
+        method="PUT",
+        headers={
+            "Authorization": f"Basic {auth}",
+            "Content-Type": "application/json",
+        },
+        data=b"{}",
+    )
+
+    with urllib.request.urlopen(request, timeout=10) as response:
+        data = json.loads(response.read().decode("utf-8"))
+
+    if data.get("s") != "ok":
+        raise RuntimeError("Xirsys TURN request failed")
+
+    ice_servers = data.get("v", {}).get("iceServers")
+
+    if not ice_servers:
+        raise RuntimeError("Xirsys returned no ICE servers")
+
+    return ice_servers
+
 def main():
     st.set_page_config(
         page_icon="🏋️‍♀️",
@@ -219,9 +264,7 @@ def main():
                 "audio": False
             },
             rtc_configuration={
-                "iceServers": [
-                    {"urls": ["stun:stun.l.google.com:19302"]}
-                ]
+                "iceServers": get_xirsys_ice_servers()
             },
             async_processing=True
         )
