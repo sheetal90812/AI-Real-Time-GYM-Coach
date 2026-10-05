@@ -214,7 +214,12 @@ def main():
             key="exercise-analysis",
             mode=WebRtcMode.SENDRECV,
             video_processor_factory=VideoProcessorClass,
-            rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+            rtc_configuration={
+                "iceServers": [
+                    {"urls": ["stun:stun.cloudflare.com:3478"]},
+                    {"urls": ["stun:stun.l.google.com:19302"]}
+                ]
+            },
             media_stream_constraints={
                 "video": True,
                 "audio": False
